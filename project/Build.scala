@@ -3,7 +3,8 @@ import sbt.Keys._
 
 object Build extends sbt.Build {
   lazy val dependencies = Seq(
-    "commons-codec" % "commons-codec" % "1.9")
+    "commons-codec" % "commons-codec" % "1.9",
+    "io.spray" %% "spray-json" % "1.2.6")
 
   lazy val testDependencies = Seq(
     "org.specs2" %% "specs2" % "2.4.1")
