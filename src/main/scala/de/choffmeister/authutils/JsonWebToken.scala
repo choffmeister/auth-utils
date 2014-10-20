@@ -11,10 +11,13 @@ import spray.json._
 class JsonWebTokenException(val message: String) extends Exception(message)
 
 case class JsonWebToken(
-  subject: String = "",
-  claims: Map[String, JsValue] = Map.empty,
-  createdAt: Date = new Date(System.currentTimeMillis / 1000L * 1000L),
-  expiresAt: Date = new Date(System.currentTimeMillis / 1000L * 1000L))
+    subject: String,
+    claims: Map[String, JsValue] = Map.empty,
+    createdAt: Date = new Date(System.currentTimeMillis / 1000L * 1000L),
+    expiresAt: Date = new Date(System.currentTimeMillis / 1000L * 1000L)) {
+  def isExpired = expiresAt.getTime < System.currentTimeMillis
+  def nonExpired = !isExpired
+}
 
 object JsonWebToken {
   def read(str: String, secret: Array[Byte]): JsonWebToken = {
