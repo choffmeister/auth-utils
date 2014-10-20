@@ -1,4 +1,4 @@
-package de.choffmeister.authutils
+package de.choffmeister.auth.common
 
 import org.specs2.mutable._
 

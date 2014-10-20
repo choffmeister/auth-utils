@@ -1,9 +1,9 @@
-package de.choffmeister.authutils.util
+package de.choffmeister.auth.common.util
 
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.codec.binary.Base64
 
-private[authutils] object HexStringConverter {
+private[auth] object HexStringConverter {
   def hex2bytes(hex: String): Array[Byte] = {
     Hex.decodeHex(hex.toCharArray)
   }
@@ -13,7 +13,7 @@ private[authutils] object HexStringConverter {
   }
 }
 
-private[authutils] object Base64StringConverter {
+private[auth] object Base64StringConverter {
   private lazy val base64 = new Base64(80, Array.empty[Byte], false)
 
   def base64ToBytes(str: String): Array[Byte] = {
@@ -33,7 +33,7 @@ private[authutils] object Base64StringConverter {
   }
 }
 
-private[authutils] object Base64UrlStringConverter {
+private[auth] object Base64UrlStringConverter {
   private lazy val base64 = new Base64(80, Array.empty[Byte], true)
 
   def base64ToBytes(str: String): Array[Byte] = {

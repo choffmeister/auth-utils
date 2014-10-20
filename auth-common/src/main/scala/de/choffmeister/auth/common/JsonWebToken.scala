@@ -1,11 +1,11 @@
-package de.choffmeister.authutils
+package de.choffmeister.auth.common
 
 import java.util.Date
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-import de.choffmeister.authutils.util._
-import de.choffmeister.authutils.util.Base64UrlStringConverter._
+import de.choffmeister.auth.common.util._
+import de.choffmeister.auth.common.util.Base64UrlStringConverter._
 import spray.json._
 
 class JsonWebTokenException(val message: String) extends Exception(message)
@@ -60,7 +60,6 @@ object JsonWebToken {
 
     val part12 = stringToBase64(h.toString) + "." + stringToBase64(t.toString)
     val part3 = bytesToBase64(hmac("HmacSHA256", part12.getBytes("ASCII"), secret))
-    println(part12 + "." + part3)
     part12 + "." + part3
   }
 

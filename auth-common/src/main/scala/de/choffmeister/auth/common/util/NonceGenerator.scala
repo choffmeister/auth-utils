@@ -1,8 +1,8 @@
-package de.choffmeister.authutils.util
+package de.choffmeister.auth.common.util
 
 import java.security.SecureRandom
 
-private[authutils] object NonceGenerator {
+private[auth] object NonceGenerator {
   lazy val random = new SecureRandom()
 
   def generateBytes(length: Int) = {

@@ -1,6 +1,6 @@
-package de.choffmeister.authutils.util
+package de.choffmeister.auth.common.util
 
-private[authutils] object SequenceUtils {
+private[auth] object SequenceUtils {
   def compareConstantTime[T](s1: Seq[T], s2: Seq[T]): Boolean = {
     var res = true
     val l = Math.max(s1.length, s2.length)

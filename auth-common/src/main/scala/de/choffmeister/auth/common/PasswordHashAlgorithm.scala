@@ -1,10 +1,10 @@
-package de.choffmeister.authutils
+package de.choffmeister.auth.common
 
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
-import de.choffmeister.authutils.util._
-import de.choffmeister.authutils.util.Base64StringConverter._
+import de.choffmeister.auth.common.util._
+import de.choffmeister.auth.common.util.Base64StringConverter._
 
 trait PasswordHashAlgorithm {
   /**

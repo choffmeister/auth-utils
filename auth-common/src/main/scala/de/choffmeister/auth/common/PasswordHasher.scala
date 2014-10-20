@@ -1,7 +1,7 @@
-package de.choffmeister.authutils
+package de.choffmeister.auth.common
 
-import de.choffmeister.authutils.util._
-import de.choffmeister.authutils.util.Base64StringConverter._
+import de.choffmeister.auth.common.util._
+import de.choffmeister.auth.common.util.Base64StringConverter._
 
 class PasswordHasher(defaultName: String, defaultConfig: List[String], algorithms: Seq[PasswordHashAlgorithm]) {
   def hash(password: String, additionalConfig: List[String] = Nil): String = {
