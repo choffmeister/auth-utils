@@ -11,7 +11,7 @@ object Build extends sbt.Build {
 
   lazy val buildSettings = Seq(
     scalaVersion := "2.11.2",
-    crossScalaVersions := Seq("2.11.2"),
+    crossScalaVersions := Seq("2.10.4", "2.11.2"),
     scalacOptions ++= Seq("-encoding", "utf8"))
 
   lazy val publishSettings = Seq(
