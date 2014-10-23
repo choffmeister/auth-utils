@@ -1,4 +1,4 @@
-# Library de.choffmeister.auth-utils
+# auth-utils [![Build Status](https://travis-ci.org/choffmeister/auth-utils.svg?branch=develop)](https://travis-ci.org/choffmeister/auth-utils)
 
 ## Usage
 
