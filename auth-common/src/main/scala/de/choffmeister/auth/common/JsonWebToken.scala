@@ -20,35 +20,31 @@ case class JsonWebToken(
 }
 
 object JsonWebToken {
-  def read(str: String, secret: Array[Byte]): JsonWebToken = {
-    val parts = str.split("\\.", -1)
-    if (parts.length != 3) throw new JsonWebTokenException("Expected Json Web Token")
-
-    val algo = JsonParser(base64ToString(parts(0))).asJsObject.getFields("typ", "alg") match {
-      case Seq(JsString("JWT"), JsString("HS256")) ⇒
-        "HmacSHA256"
-      case _ ⇒
-        throw new JsonWebTokenException("Expected Json Web Token with HMAC-SHA256 signature")
-    }
-
-    val s1 = base64ToBytes(parts(2))
-    val s2 = hmac(algo, (parts(0) + "." + parts(1)).getBytes("ASCII"), secret)
-    if (SequenceUtils.compareConstantTime(s1, s2) == false)
-      throw new JsonWebTokenException("Json Web Token signature is invalid")
-
-    val knownClaimNames = List("iat", "exp", "sub")
-    val t1 = JsonParser(base64ToString(parts(1))).asJsObject
-    val t2 = t1.fields.filter(f ⇒ knownClaimNames.contains(f._1)).map(_._2) match {
-      case Seq(JsNumber(iat), JsNumber(exp), JsString(sub)) ⇒
-        JsonWebToken(
-          createdAt = new Date(iat.toLong * 1000L),
-          expiresAt = new Date(exp.toLong * 1000L),
-          subject = sub)
-      case _ ⇒
-        throw new JsonWebTokenException("Json Web Token must at least contain " + knownClaimNames.mkString(", ") + " claims")
-    }
-
-    t2.copy(claims = t1.fields.filter(f ⇒ !knownClaimNames.contains(f._1)))
+  def read(str: String, secret: Array[Byte]): Either[Error, JsonWebToken] = str.split("\\.", -1).toList match {
+    case headerStr :: tokenStr :: signatureStr :: Nil ⇒
+      JsonParser(base64ToString(headerStr)).asJsObject.getFields("typ", "alg") match {
+        case Seq(JsString("JWT"), JsString(algorithm)) ⇒
+          sign(algorithm, (headerStr + "." + tokenStr).getBytes("ASCII"), secret) match {
+            case Some(signature) ⇒
+              if (SequenceUtils.compareConstantTime(base64ToBytes(signatureStr), signature)) {
+                val knownClaimNames = List("iat", "exp", "sub")
+                val tokenRaw = JsonParser(base64ToString(tokenStr)).asJsObject
+                tokenRaw.fields.filter(f ⇒ knownClaimNames.contains(f._1)).map(_._2) match {
+                  case Seq(JsNumber(iat), JsNumber(exp), JsString(sub)) ⇒
+                    val token = JsonWebToken(
+                      createdAt = new Date(iat.toLong * 1000L),
+                      expiresAt = new Date(exp.toLong * 1000L),
+                      subject = sub).copy(claims = tokenRaw.fields.filter(f ⇒ !knownClaimNames.contains(f._1)))
+                    if (token.nonExpired) Right(token)
+                    else Left(Expired(token))
+                  case _ ⇒ Left(Incomplete)
+                }
+              } else Left(InvalidSignature)
+            case None ⇒ Left(UnsupportedAlgorithm(algorithm))
+          }
+        case _ ⇒ Left(Malformed)
+      }
+    case _ ⇒ Left(Malformed)
   }
 
   def write(token: JsonWebToken, secret: Array[Byte]): String = {
@@ -59,14 +55,23 @@ object JsonWebToken {
       "sub" -> JsString(token.subject)) ++ token.claims)
 
     val part12 = stringToBase64(h.toString) + "." + stringToBase64(t.toString)
-    val part3 = bytesToBase64(hmac("HmacSHA256", part12.getBytes("ASCII"), secret))
+    val part3 = bytesToBase64(sign("HS256", part12.getBytes("ASCII"), secret).get)
     part12 + "." + part3
   }
 
-  private def hmac(algorithm: String, data: Array[Byte], secret: Array[Byte]): Array[Byte] = {
-    val hmac = Mac.getInstance(algorithm)
-    val key = new SecretKeySpec(secret, algorithm)
-    hmac.init(key)
-    hmac.doFinal(data)
+  private def sign(algorithm: String, data: Array[Byte], secret: Array[Byte]): Option[Array[Byte]] = algorithm match {
+    case "HS256" ⇒
+      val hmac = Mac.getInstance("HmacSHA256")
+      val key = new SecretKeySpec(secret, algorithm)
+      hmac.init(key)
+      Some(hmac.doFinal(data))
+    case _ ⇒ None
   }
+
+  sealed trait Error
+  case object Malformed extends Error
+  case object InvalidSignature extends Error
+  case object Incomplete extends Error
+  case class Expired(token: JsonWebToken) extends Error
+  case class UnsupportedAlgorithm(algorithm: String) extends Error
 }
