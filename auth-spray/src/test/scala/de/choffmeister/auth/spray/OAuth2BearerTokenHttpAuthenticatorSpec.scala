@@ -10,7 +10,7 @@ import spray.http._
 import scala.concurrent._
 
 class OAuth2BearerTokenHttpAuthenticatorSpec extends Specification {
-  def time(delta: Long) = new Date((System.currentTimeMillis + delta) / 1000L * 1000L)
+  def time(delta: Long) = new Date(System.currentTimeMillis / 1000L * 1000L + delta * 1000L)
 
   "OAuth2BearerTokenHttpAuthenticator" should {
     "work" in {
@@ -18,11 +18,11 @@ class OAuth2BearerTokenHttpAuthenticatorSpec extends Specification {
       val sec2 = "123".getBytes("ASCII")
       val auth = new OAuth2BearerTokenHttpAuthenticator[String]("test", sec1, sub ⇒ Future(Some(sub)))
 
-      val token1 = JsonWebToken(subject = "tom", expiresAt = time(+10000))
+      val token1 = JsonWebToken(subject = "tom", expiresAt = time(+60))
       authenticate(auth, token1, sec1) === Some("tom")
       authenticate(auth, token1, sec2) === None
 
-      val token2 = JsonWebToken(subject = "tom2", expiresAt = time(-10000))
+      val token2 = JsonWebToken(subject = "tom2", expiresAt = time(-60))
       authenticate(auth, token2, sec1) === None
       authenticate(auth, token2, sec2) === None
     }
