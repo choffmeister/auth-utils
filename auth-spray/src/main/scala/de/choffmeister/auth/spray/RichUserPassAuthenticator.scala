@@ -15,12 +15,10 @@ class RichUserPassAuthenticator[U](self: UserPassAuthenticator[U]) {
       val delayed = after[Option[U]](delay, SimpleScheduler.instance)(future(None))
 
       val promise = Promise[Option[U]]()
-      auth.onSuccess {
-        case Some(userPass) ⇒ promise.success(Some(userPass))
-        case None ⇒ delayed.onComplete {
-          case Success(s) ⇒ promise.success(s)
-          case Failure(f) ⇒ promise.failure(f)
-        }
+      auth.onComplete {
+        case Success(Some(user)) ⇒ promise.success(Some(user))
+        case Success(None) if userPass.isEmpty ⇒ promise.success(None)
+        case _ ⇒ delayed.onComplete(_ ⇒ promise.success(None))
       }
       promise.future
     }
