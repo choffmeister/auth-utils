@@ -69,6 +69,7 @@ object JsonWebToken {
   }
 
   sealed trait Error
+  case object Missing extends Error
   case object Malformed extends Error
   case object InvalidSignature extends Error
   case object Incomplete extends Error

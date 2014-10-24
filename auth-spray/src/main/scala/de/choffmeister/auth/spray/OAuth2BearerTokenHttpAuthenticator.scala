@@ -22,20 +22,23 @@ class OAuth2BearerTokenHttpAuthenticator[U](val realm: String, val secret: Array
     case _ ⇒ Future(None)
   }
 
-  override def getChallengeHeaders(req: HttpRequest): List[HttpHeader] = {
+  override def getChallengeHeaders(req: HttpRequest): List[HttpHeader] = extractJsonWebToken(req) match {
+    case Left(JsonWebToken.InvalidSignature) ⇒ convertToChallengeHeaders(TokenManipulated)
+    case Left(JsonWebToken.Expired(_)) ⇒ convertToChallengeHeaders(TokenExpired)
+    case Left(JsonWebToken.Missing) ⇒ convertToChallengeHeaders(TokenMissing)
+    case _ ⇒ convertToChallengeHeaders(TokenMalformed)
+  }
+
+  def extractJsonWebToken(req: HttpRequest): Either[JsonWebToken.Error, JsonWebToken] = {
     val authHeader = req.headers.findByType[`Authorization`]
     val credentials = authHeader.map { case Authorization(creds) ⇒ creds }
     credentials match {
-      case Some(bt: OAuth2BearerToken) ⇒ JsonWebToken.read(bt.token, secret) match {
-        case Left(JsonWebToken.InvalidSignature) ⇒ getChallengeHeaders(TokenManipulated)
-        case Left(JsonWebToken.Expired(_)) ⇒ getChallengeHeaders(TokenExpired)
-        case _ ⇒ getChallengeHeaders(TokenMalformed)
-      }
-      case _ ⇒ getChallengeHeaders(TokenMissing)
+      case Some(bt: OAuth2BearerToken) ⇒ JsonWebToken.read(bt.token, secret)
+      case _ ⇒ Left(JsonWebToken.Missing)
     }
   }
 
-  def getChallengeHeaders(error: Error): List[HttpHeader] = {
+  private def convertToChallengeHeaders(error: Error): List[HttpHeader] = {
     val desc = error match {
       case TokenMissing ⇒ None
       case TokenMalformed ⇒ Some("The access token is malformed")
@@ -49,11 +52,6 @@ class OAuth2BearerTokenHttpAuthenticator[U](val realm: String, val secret: Array
       case None ⇒ Map.empty[String, String]
     }
     `WWW-Authenticate`(HttpChallenge(scheme = "Bearer", realm = realm, params = params)) :: Nil
-  }
-
-  def createRejection(error: Error): AuthRejection = error match {
-    case TokenMissing ⇒ AuthRejection(Missing, getChallengeHeaders(error))
-    case _ ⇒ AuthRejection(Rejected, getChallengeHeaders(error))
   }
 }
 
