@@ -13,7 +13,14 @@ object Build extends sbt.Build {
 
   lazy val publishSettings = Seq(
     publishMavenStyle := true,
-    publishTo := Some(Resolver.sftp("choffmeister.de repo", "choffmeister.de", "maven2")))
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
+    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"))
 
   lazy val commonSettings = Defaults.defaultSettings ++ Scalariform.settings ++ Jacoco.settings ++
     coordinateSettings ++ buildSettings ++ publishSettings

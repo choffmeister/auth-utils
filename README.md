@@ -5,7 +5,7 @@
 Add the following lines to you `build.sbt` file:
 
 ~~~
-resolvers += "choffmeister.de repo" at "http://repo.choffmeister.de/maven2/"
+resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
 libraryDependencies += "de.choffmeister" %% "auth-common" % "0.0.1-SNAPSHOT"
 
