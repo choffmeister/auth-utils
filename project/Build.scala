@@ -4,7 +4,7 @@ import sbt.Keys._
 object Build extends sbt.Build {
   lazy val coordinateSettings = Seq(
     organization := "de.choffmeister",
-    version := "0.0.1-SNAPSHOT")
+    version := "0.0.1")
 
   lazy val buildSettings = Seq(
     scalaVersion := "2.11.2",
@@ -13,7 +13,15 @@ object Build extends sbt.Build {
 
   lazy val publishSettings = Seq(
     publishMavenStyle := true,
-    publishTo := Some(Resolver.sftp("choffmeister.de repo", "choffmeister.de", "maven2")))
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
+    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
+    pomExtra := mavenInfos)
 
   lazy val commonSettings = Defaults.defaultSettings ++ Scalariform.settings ++ Jacoco.settings ++
     coordinateSettings ++ buildSettings ++ publishSettings
@@ -41,6 +49,27 @@ object Build extends sbt.Build {
     .settings(publish := {})
     .settings(name := "auth")
     .aggregate(common, spray)
+
+  lazy val mavenInfos = {
+    <url>https://github.com/choffmeister/auth-utils</url>
+    <licenses>
+      <license>
+        <name>MIT</name>
+        <url>http://opensource.org/licenses/MIT</url>
+      </license>
+    </licenses>
+    <scm>
+      <url>github.com/choffmeister/auth-utils.git</url>
+      <connection>scm:git:github.com/choffmeister/auth-utils.git</connection>
+      <developerConnection>scm:git:git@github.com:choffmeister/auth-utils.git</developerConnection>
+    </scm>
+    <developers>
+      <developer>
+        <id>choffmeister</id>
+        <name>Christian Hoffmeister</name>
+        <url>http://choffmeister.de/</url>
+      </developer>
+    </developers> }
 }
 
 object Jacoco {
