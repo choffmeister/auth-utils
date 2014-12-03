@@ -10,7 +10,7 @@ class JsonWebTokenSpec extends Specification {
 
   "JsonWebToken" should {
     "read and write tokens" in {
-      val sec = "secret1".getBytes("ASCII")
+      val sec = "secret".getBytes("ASCII")
 
       val jwt1 = JsonWebToken(subject = "jw", expiresAt = time(+60), claims = Map("foo" -> JsString("bar")))
       val s = JsonWebToken.write(jwt1, sec)
@@ -29,7 +29,7 @@ class JsonWebTokenSpec extends Specification {
     }
 
     "recognize expiration" in {
-      val sec = "secret1".getBytes("ASCII")
+      val sec = "secret".getBytes("ASCII")
 
       val jwt1 = JsonWebToken(subject = "jw", expiresAt = time(-60), claims = Map("foo" -> JsString("bar")))
       val s = JsonWebToken.write(jwt1, sec)
@@ -37,6 +37,13 @@ class JsonWebTokenSpec extends Specification {
       jwt2 must beLeft(JsonWebToken.Expired(jwt1))
 
       jwt2.left.get.asInstanceOf[JsonWebToken.Expired].token.isExpired === true
+    }
+
+    "properly handle malformed tokens" in {
+      val sec = "secret".getBytes("ASCII")
+
+      JsonWebToken.read("123h9123h", sec) must beLeft(JsonWebToken.Malformed)
+      JsonWebToken.read("123h9123hiuhji.123123123.12323h12i", sec) must beLeft(JsonWebToken.Malformed)
     }
   }
 }
