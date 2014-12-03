@@ -11,7 +11,8 @@ import spray.util._
 import scala.concurrent._
 
 /** See http://tools.ietf.org/html/rfc6750 */
-class OAuth2BearerTokenHttpAuthenticator[U](val realm: String, val secret: Array[Byte], user: String ⇒ Future[Option[U]])(implicit val executionContext: ExecutionContext) extends HttpAuthenticator[U] {
+class OAuth2BearerTokenHttpAuthenticator[U](val realm: String, val secret: Array[Byte], user: String ⇒ Future[Option[U]])(implicit val executionContext: ExecutionContext)
+    extends HttpAuthenticator[U] { self ⇒
   import OAuth2BearerTokenHttpAuthenticator._
 
   override def authenticate(credentials: Option[HttpCredentials], ctx: RequestContext): Future[Option[U]] = credentials match {
@@ -52,6 +53,21 @@ class OAuth2BearerTokenHttpAuthenticator[U](val realm: String, val secret: Array
       case None ⇒ Map.empty[String, String]
     }
     `WWW-Authenticate`(HttpChallenge(scheme = "Bearer", realm = realm, params = params)) :: Nil
+  }
+
+  def withoutExpiration = new HttpAuthenticator[U] {
+    implicit val executionContext: ExecutionContext = self.executionContext
+
+    def authenticate(credentials: Option[HttpCredentials], ctx: RequestContext): Future[Option[U]] = credentials match {
+      case Some(bt: OAuth2BearerToken) ⇒ JsonWebToken.read(bt.token, secret) match {
+        case Right(token) ⇒ user(token.subject)
+        case Left(JsonWebToken.Expired(token)) ⇒ user(token.subject)
+        case Left(err) ⇒ Future(None)
+      }
+      case _ ⇒ Future(None)
+    }
+
+    def getChallengeHeaders(req: spray.http.HttpRequest): List[HttpHeader] = self.getChallengeHeaders(req)
   }
 }
 
