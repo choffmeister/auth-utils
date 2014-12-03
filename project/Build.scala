@@ -4,7 +4,7 @@ import sbt.Keys._
 object Build extends sbt.Build {
   lazy val coordinateSettings = Seq(
     organization := "de.choffmeister",
-    version := "0.0.1")
+    version := "0.0.2-SNAPSHOT")
 
   lazy val buildSettings = Seq(
     scalaVersion := "2.11.2",
