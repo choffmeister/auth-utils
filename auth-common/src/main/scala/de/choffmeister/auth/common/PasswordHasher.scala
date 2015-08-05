@@ -1,15 +1,15 @@
 package de.choffmeister.auth.common
 
-import de.choffmeister.auth.common.util._
 import de.choffmeister.auth.common.util.Base64StringConverter._
+import de.choffmeister.auth.common.util._
 
 class PasswordHasher(defaultName: String, defaultConfig: List[String], algorithms: Seq[PasswordHashAlgorithm]) {
   def hash(password: String, additionalConfig: List[String] = Nil): String = {
     hashByAlgoName(defaultName, defaultConfig ++ additionalConfig, password) match {
-      case Right(hash) ⇒
+      case Right(hash) =>
         val fields = List(defaultName) ++ defaultConfig ++ additionalConfig ++ List(bytesToBase64(hash))
         fields.mkString(":")
-      case Left(c) ⇒
+      case Left(c) =>
         hash(password, additionalConfig ++ c)
     }
   }

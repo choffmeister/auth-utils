@@ -1,15 +1,20 @@
 import sbt._
 import sbt.Keys._
+import com.typesafe.sbt._
+import com.typesafe.sbt.SbtGit.GitKeys._
 
 object Build extends sbt.Build {
   lazy val coordinateSettings = Seq(
     organization := "de.choffmeister",
-    version := "0.0.2-SNAPSHOT")
+    version in ThisBuild := gitDescribedVersion.value.map(_.drop(1)).get)
 
   lazy val buildSettings = Seq(
-    scalaVersion := "2.11.2",
-    crossScalaVersions := Seq("2.10.4", "2.11.2"),
+    scalaVersion := "2.11.5",
     scalacOptions ++= Seq("-encoding", "utf8"))
+
+  lazy val resolverSettings = Seq(
+    resolvers ++= Seq(
+      "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"))
 
   lazy val publishSettings = Seq(
     publishMavenStyle := true,
@@ -23,24 +28,35 @@ object Build extends sbt.Build {
     credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
     pomExtra := mavenInfos)
 
-  lazy val commonSettings = Defaults.defaultSettings ++ Scalariform.settings ++ Jacoco.settings ++
-    coordinateSettings ++ buildSettings ++ publishSettings
+  lazy val commonSettings = Defaults.coreDefaultSettings ++ coordinateSettings ++ buildSettings ++
+    resolverSettings ++ publishSettings
 
   lazy val common = (project in file("auth-common"))
     .settings(commonSettings: _*)
     .settings(libraryDependencies ++= Seq(
       "commons-codec" % "commons-codec" % "1.9",
-      "io.spray" %% "spray-json" % "1.2.6",
-      "org.specs2" %% "specs2" % "2.4.1" % "test"))
+      "io.spray" %% "spray-json" % "1.3.1",
+      "org.specs2" %% "specs2-core" % "3.3.1" % "test"))
     .settings(name := "auth-common")
+
+lazy val akkaHttp = (project in file("auth-akka-http"))
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= Seq(
+    "com.typesafe" % "config" % "1.2.0",
+    "com.typesafe.akka" %% "akka-actor" % "2.3.12",
+    "com.typesafe.akka" %% "akka-http-experimental" % "1.0",
+    "com.typesafe.akka" %% "akka-http-testkit-experimental" % "1.0" % "test",
+    "org.specs2" %% "specs2-core" % "3.3.1" % "test"))
+  .settings(name := "auth-akka-http")
+  .dependsOn(common)
 
   lazy val spray = (project in file("auth-spray"))
     .settings(commonSettings: _*)
     .settings(libraryDependencies ++= Seq(
       "com.typesafe" % "config" % "1.2.0",
-      "com.typesafe.akka" %% "akka-actor" % "2.3.6",
+      "com.typesafe.akka" %% "akka-actor" % "2.3.12",
       "io.spray" %% "spray-routing" % "1.3.1",
-      "org.specs2" %% "specs2" % "2.4.1" % "test"))
+      "org.specs2" %% "specs2-core" % "3.3.1" % "test"))
     .settings(name := "auth-spray")
     .dependsOn(common)
 
@@ -48,7 +64,8 @@ object Build extends sbt.Build {
     .settings(commonSettings: _*)
     .settings(publish := {})
     .settings(name := "auth")
-    .aggregate(common, spray)
+    .enablePlugins(GitVersioning)
+    .aggregate(common, akkaHttp, spray)
 
   lazy val mavenInfos = {
     <url>https://github.com/choffmeister/auth-utils</url>
@@ -70,30 +87,4 @@ object Build extends sbt.Build {
         <url>http://choffmeister.de/</url>
       </developer>
     </developers> }
-}
-
-object Jacoco {
-  import de.johoop.jacoco4sbt._
-  import JacocoPlugin._
-
-  lazy val settings = jacoco.settings ++ reports
-
-  lazy val reports = Seq(
-    jacoco.reportFormats in jacoco.Config := Seq(
-      XMLReport(encoding = "utf-8"),
-      ScalaHTMLReport(withBranchCoverage = true)))
-}
-
-object Scalariform {
-  import com.typesafe.sbt._
-  import com.typesafe.sbt.SbtScalariform._
-  import scalariform.formatter.preferences._
-
-  lazy val settings = SbtScalariform.scalariformSettings ++ preferences
-
-  lazy val preferences = Seq(
-    ScalariformKeys.preferences := ScalariformKeys.preferences.value
-      .setPreference(RewriteArrowSymbols, true)
-      .setPreference(SpacesWithinPatternBinders, true)
-      .setPreference(CompactControlReadability, false))
 }

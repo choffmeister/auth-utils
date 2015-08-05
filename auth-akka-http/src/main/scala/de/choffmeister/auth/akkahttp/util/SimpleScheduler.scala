@@ -1,4 +1,4 @@
-package de.choffmeister.auth.spray.util
+package de.choffmeister.auth.akkahttp.util
 
 import akka.actor._
 
