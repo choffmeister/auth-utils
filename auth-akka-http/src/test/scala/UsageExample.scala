@@ -1,25 +1,3 @@
-# auth-utils
-
-[![build](https://img.shields.io/circleci/project/choffmeister/auth-utils.svg)](https://circleci.com/gh/choffmeister/auth-utils)
-[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-common.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-common%22)
-[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-spray.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-spray%22)
-[![license](http://img.shields.io/badge/license-MIT-lightgrey.svg)](http://opensource.org/licenses/MIT)
-
-## Usage
-
-Add the following lines to you `build.sbt` file:
-
-~~~ scala
-// build.sbt
-libraryDependencies += "de.choffmeister" %% "auth-common" % "0.1.0"
-
-libraryDependencies += "de.choffmeister" %% "auth-akka-http" % "0.1.0"
-~~~
-
-Here is an example, that uses HTTP basic authentication as well as JWT authentication:
-
-~~~ scala
-// UsageExample.scala
 import java.util.Date
 
 import akka.actor._
@@ -93,8 +71,3 @@ class UsageExample(implicit val system: ActorSystem, val executor: ExecutionCont
     complete(OAuth2AccessTokenResponseFormat.write(response).compactPrint)
   }
 }
-~~~
-
-## License
-
-Published under the permissive [MIT](http://opensource.org/licenses/MIT) license.
