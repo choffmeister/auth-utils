@@ -11,9 +11,9 @@ Add the following lines to you `build.sbt` file:
 
 ~~~ scala
 // build.sbt
-libraryDependencies += "de.choffmeister" %% "auth-common" % "0.0.1"
+libraryDependencies += "de.choffmeister" %% "auth-common" % "0.1.0"
 
-libraryDependencies += "de.choffmeister" %% "auth-akka-http" % "0.0.1"
+libraryDependencies += "de.choffmeister" %% "auth-akka-http" % "0.1.0"
 ~~~
 
 Here is an example, that uses HTTP basic authentication as well as JWT authentication:
