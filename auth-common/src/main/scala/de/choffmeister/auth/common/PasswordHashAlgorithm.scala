@@ -26,9 +26,9 @@ object Plain extends PasswordHashAlgorithm {
   val name = "plain"
 
   def hash(config: List[String], password: String) = config match {
-    case Nil ⇒
+    case Nil =>
       Right(password.getBytes("UTF-8"))
-    case _ ⇒
+    case _ =>
       throw new Exception(s"Invalid config $config")
   }
 }
@@ -40,14 +40,14 @@ object PBKDF2 extends PasswordHashAlgorithm {
   val name = "pbkdf2"
 
   def hash(config: List[String], password: String) = config match {
-    case algorithmName :: iterations :: keyLength :: Nil ⇒
+    case algorithmName :: iterations :: keyLength :: Nil =>
       val salt = NonceGenerator.generateBytes(32)
       Left(bytesToBase64(salt) :: Nil)
-    case "hmac-sha1" :: UnapplyInt(iterations) :: UnapplyInt(keyLength) :: UnapplyByteArray(salt) :: Nil ⇒
+    case "hmac-sha1" :: UnapplyInt(iterations) :: UnapplyInt(keyLength) :: UnapplyByteArray(salt) :: Nil =>
       val spec = new PBEKeySpec(password.toCharArray, salt, iterations, keyLength)
       val skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
       Right(skf.generateSecret(spec).getEncoded())
-    case _ ⇒
+    case _ =>
       throw new Exception(s"Invalid config $config")
   }
 }

@@ -6,7 +6,6 @@ import javax.crypto.spec.SecretKeySpec
 
 import de.choffmeister.auth.common.util._
 import de.choffmeister.auth.common.util.Base64UrlStringConverter._
-import org.parboiled.errors.ParsingException
 import spray.json._
 
 class JsonWebTokenException(val message: String) extends Exception(message)
@@ -24,34 +23,34 @@ object JsonWebToken {
   def read(str: String, secret: Array[Byte]): Either[Error, JsonWebToken] = {
     try {
       str.split("\\.", -1).toList match {
-        case headerStr :: tokenStr :: signatureStr :: Nil ⇒
+        case headerStr :: tokenStr :: signatureStr :: Nil =>
           JsonParser(base64ToString(headerStr)).asJsObject.getFields("typ", "alg") match {
-            case Seq(JsString("JWT"), JsString(algorithm)) ⇒
+            case Seq(JsString("JWT"), JsString(algorithm)) =>
               sign(algorithm, (headerStr + "." + tokenStr).getBytes("ASCII"), secret) match {
-                case Some(signature) ⇒
+                case Some(signature) =>
                   if (SequenceUtils.compareConstantTime(base64ToBytes(signatureStr), signature)) {
                     val knownClaimNames = List("iat", "exp", "sub")
                     val tokenRaw = JsonParser(base64ToString(tokenStr)).asJsObject
-                    tokenRaw.fields.filter(f ⇒ knownClaimNames.contains(f._1)).map(_._2) match {
-                      case Seq(JsNumber(iat), JsNumber(exp), JsString(sub)) ⇒
+                    tokenRaw.fields.filter(f => knownClaimNames.contains(f._1)).map(_._2) match {
+                      case Seq(JsNumber(iat), JsNumber(exp), JsString(sub)) =>
                         val token = JsonWebToken(
                           createdAt = new Date(iat.toLong * 1000L),
                           expiresAt = new Date(exp.toLong * 1000L),
-                          subject = sub).copy(claims = tokenRaw.fields.filter(f ⇒ !knownClaimNames.contains(f._1)))
+                          subject = sub).copy(claims = tokenRaw.fields.filter(f => !knownClaimNames.contains(f._1)))
                         if (token.nonExpired) Right(token)
                         else Left(Expired(token))
-                      case _ ⇒ Left(Incomplete)
+                      case _ => Left(Incomplete)
                     }
                   } else Left(InvalidSignature)
-                case None ⇒ Left(UnsupportedAlgorithm(algorithm))
+                case None => Left(UnsupportedAlgorithm(algorithm))
               }
-            case _ ⇒ Left(Malformed)
+            case _ => Left(Malformed)
           }
-        case _ ⇒ Left(Malformed)
+        case _ => Left(Malformed)
       }
     } catch {
-      case _: ParsingException ⇒ Left(Malformed)
-      case _: Exception ⇒ Left(Unknown)
+      case _: JsonParser.ParsingException => Left(Malformed)
+      case _: Exception => Left(Unknown)
     }
   }
 
@@ -68,12 +67,12 @@ object JsonWebToken {
   }
 
   private def sign(algorithm: String, data: Array[Byte], secret: Array[Byte]): Option[Array[Byte]] = algorithm match {
-    case "HS256" ⇒
+    case "HS256" =>
       val hmac = Mac.getInstance("HmacSHA256")
       val key = new SecretKeySpec(secret, algorithm)
       hmac.init(key)
       Some(hmac.doFinal(data))
-    case _ ⇒ None
+    case _ => None
   }
 
   sealed trait Error

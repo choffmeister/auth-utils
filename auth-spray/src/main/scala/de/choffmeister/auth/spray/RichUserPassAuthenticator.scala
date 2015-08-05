@@ -16,9 +16,9 @@ class RichUserPassAuthenticator[U](self: UserPassAuthenticator[U]) {
 
       val promise = Promise[Option[U]]()
       auth.onComplete {
-        case Success(Some(user)) ⇒ promise.success(Some(user))
-        case Success(None) if userPass.isEmpty ⇒ promise.success(None)
-        case _ ⇒ delayed.onComplete(_ ⇒ promise.success(None))
+        case Success(Some(user)) => promise.success(Some(user))
+        case Success(None) if userPass.isEmpty => promise.success(None)
+        case _ => delayed.onComplete(_ => promise.success(None))
       }
       promise.future
     }

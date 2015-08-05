@@ -33,8 +33,8 @@ private[auth] class SimpleScheduler(override val maxFrequency: Double) extends S
             val head = queue.dequeue()
             head._4.execute(head._1)
             head._3 match {
-              case Some(next) ⇒ queue.enqueue((head._1, head._2 + next, Some(next), head._4))
-              case _ ⇒ {}
+              case Some(next) => queue.enqueue((head._1, head._2 + next, Some(next), head._4))
+              case _ => {}
             }
           }
         }

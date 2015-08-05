@@ -12,9 +12,9 @@ object OAuth2AccessTokenResponseFormat extends RootJsonFormat[OAuth2AccessTokenR
   )
   def read(value: JsValue) =
     value.asJsObject.getFields("token_type", "access_token", "expires_in") match {
-      case Seq(JsString(tokenType), JsString(accessToken), JsNumber(expiresIn)) ⇒
+      case Seq(JsString(tokenType), JsString(accessToken), JsNumber(expiresIn)) =>
         OAuth2AccessTokenResponse(tokenType, accessToken, expiresIn.toLong)
-      case _ ⇒
+      case _ =>
         throw new DeserializationException("OAuth2 token response expected")
     }
 }

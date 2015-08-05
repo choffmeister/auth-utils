@@ -1,6 +1,6 @@
 # auth-utils
 
-[![build](https://img.shields.io/travis/choffmeister/auth-utils/develop.svg)](https://travis-ci.org/choffmeister/auth-utils)
+[![build](https://img.shields.io/circleci/project/choffmeister/auth-utils.svg)](https://circleci.com/gh/choffmeister/auth-utils)
 [![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-common.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-common%22)
 [![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-spray.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-spray%22)
 [![license](http://img.shields.io/badge/license-MIT-lightgrey.svg)](http://opensource.org/licenses/MIT)

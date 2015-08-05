@@ -8,6 +8,7 @@ import org.specs2.mutable._
 import spray.http._
 
 import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class OAuth2BearerTokenHttpAuthenticatorSpec extends Specification {
   def time(delta: Long) = new Date(System.currentTimeMillis / 1000L * 1000L + delta * 1000L)
@@ -16,7 +17,7 @@ class OAuth2BearerTokenHttpAuthenticatorSpec extends Specification {
     "authenticate" in {
       val sec1 = "secret".getBytes("ASCII")
       val sec2 = "123".getBytes("ASCII")
-      val auth = new OAuth2BearerTokenHttpAuthenticator[String]("test", sec1, sub ⇒ Future(Some(sub)))
+      val auth = new OAuth2BearerTokenHttpAuthenticator[String]("test", sec1, sub => Future(Some(sub)))
 
       val token1 = JsonWebToken(subject = "tom", expiresAt = time(+60))
       authenticate(auth, token1, sec1) === Some("tom")
@@ -30,7 +31,7 @@ class OAuth2BearerTokenHttpAuthenticatorSpec extends Specification {
     "authenticate without expiration" in {
       val sec1 = "secret".getBytes("ASCII")
       val sec2 = "123".getBytes("ASCII")
-      val auth = new OAuth2BearerTokenHttpAuthenticator[String]("test", sec1, sub ⇒ Future(Some(sub)))
+      val auth = new OAuth2BearerTokenHttpAuthenticator[String]("test", sec1, sub => Future(Some(sub)))
 
       val token1 = JsonWebToken(subject = "tom", expiresAt = time(+60))
       authenticateWithoutExpiration(auth, token1, sec1) === Some("tom")

@@ -5,7 +5,7 @@ import de.choffmeister.auth.common.util.Base64StringConverter._
 private[auth] object UnapplyInt {
   def unapply(str: String): Option[Int] = {
     try { Some(str.toInt) }
-    catch { case _: NumberFormatException ⇒ None }
+    catch { case _: NumberFormatException => None }
   }
 }
 
