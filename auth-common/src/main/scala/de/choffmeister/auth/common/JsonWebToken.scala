@@ -4,8 +4,8 @@ import java.util.Date
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-import de.choffmeister.auth.common.util._
 import de.choffmeister.auth.common.util.Base64UrlStringConverter._
+import de.choffmeister.auth.common.util._
 import spray.json._
 
 class JsonWebTokenException(val message: String) extends Exception(message)
@@ -29,10 +29,10 @@ object JsonWebToken {
               sign(algorithm, (headerStr + "." + tokenStr).getBytes("ASCII"), secret) match {
                 case Some(signature) =>
                   if (SequenceUtils.compareConstantTime(base64ToBytes(signatureStr), signature)) {
-                    val knownClaimNames = List("iat", "exp", "sub")
+                    val knownClaimNames = List("exp", "iat", "sub")
                     val tokenRaw = JsonParser(base64ToString(tokenStr)).asJsObject
-                    tokenRaw.fields.filter(f => knownClaimNames.contains(f._1)).map(_._2) match {
-                      case Seq(JsNumber(iat), JsNumber(exp), JsString(sub)) =>
+                    tokenRaw.fields.filter(f => knownClaimNames.contains(f._1)).toSeq.sortBy(_._1).map(_._2) match {
+                      case Seq(JsNumber(exp), JsNumber(iat), JsString(sub)) =>
                         val token = JsonWebToken(
                           createdAt = new Date(iat.toLong * 1000L),
                           expiresAt = new Date(exp.toLong * 1000L),

@@ -39,6 +39,17 @@ object Build extends sbt.Build {
       "org.specs2" %% "specs2-core" % "3.3.1" % "test"))
     .settings(name := "auth-common")
 
+lazy val akkaHttp = (project in file("auth-akka-http"))
+  .settings(commonSettings: _*)
+  .settings(libraryDependencies ++= Seq(
+    "com.typesafe" % "config" % "1.2.0",
+    "com.typesafe.akka" %% "akka-actor" % "2.3.12",
+    "com.typesafe.akka" %% "akka-http-experimental" % "1.0",
+    "com.typesafe.akka" %% "akka-http-testkit-experimental" % "1.0" % "test",
+    "org.specs2" %% "specs2-core" % "3.3.1" % "test"))
+  .settings(name := "auth-akka-http")
+  .dependsOn(common)
+
   lazy val spray = (project in file("auth-spray"))
     .settings(commonSettings: _*)
     .settings(libraryDependencies ++= Seq(
@@ -54,7 +65,7 @@ object Build extends sbt.Build {
     .settings(publish := {})
     .settings(name := "auth")
     .enablePlugins(GitVersioning)
-    .aggregate(common, spray)
+    .aggregate(common, akkaHttp, spray)
 
   lazy val mavenInfos = {
     <url>https://github.com/choffmeister/auth-utils</url>

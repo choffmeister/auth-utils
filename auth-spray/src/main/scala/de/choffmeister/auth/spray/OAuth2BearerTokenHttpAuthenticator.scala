@@ -3,9 +3,9 @@ package de.choffmeister.auth.spray
 import de.choffmeister.auth.common._
 import spray.http.HttpHeaders._
 import spray.http._
-import spray.routing.AuthenticationFailedRejection.{ CredentialsMissing => Missing, CredentialsRejected => Rejected }
+import spray.routing.AuthenticationFailedRejection.{CredentialsMissing => Missing, CredentialsRejected => Rejected}
 import spray.routing.authentication._
-import spray.routing.{ AuthenticationFailedRejection => AuthRejection, _ }
+import spray.routing.{AuthenticationFailedRejection => AuthRejection, _}
 import spray.util._
 
 import scala.concurrent._

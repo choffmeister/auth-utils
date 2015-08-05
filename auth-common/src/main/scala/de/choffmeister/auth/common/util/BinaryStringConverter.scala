@@ -1,7 +1,6 @@
 package de.choffmeister.auth.common.util
 
-import org.apache.commons.codec.binary.Hex
-import org.apache.commons.codec.binary.Base64
+import org.apache.commons.codec.binary.{Base64, Hex}
 
 private[auth] object HexStringConverter {
   def hex2bytes(hex: String): Array[Byte] = {

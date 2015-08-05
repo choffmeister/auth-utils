@@ -1,8 +1,8 @@
 package de.choffmeister.auth.spray
 
 import spray.http._
-import spray.routing.authentication._
 import spray.routing._
+import spray.routing.authentication._
 
 import scala.concurrent._
 

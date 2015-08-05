@@ -3,12 +3,10 @@ package de.choffmeister.auth.spray
 import java.util.concurrent.TimeUnit
 
 import org.specs2.mutable._
-import spray.http._
 import spray.routing.authentication._
-import spray.routing.RequestContext
 
-import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
 
 class RichUserPassAuthenticatorSpec extends Specification {
   import RichUserPassAuthenticator._

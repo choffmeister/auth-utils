@@ -7,8 +7,8 @@ import de.choffmeister.auth.common._
 import org.specs2.mutable._
 import spray.http._
 
-import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
 
 class OAuth2BearerTokenHttpAuthenticatorSpec extends Specification {
   def time(delta: Long) = new Date(System.currentTimeMillis / 1000L * 1000L + delta * 1000L)
