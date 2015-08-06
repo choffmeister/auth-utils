@@ -62,7 +62,7 @@ lazy val akkaHttp = (project in file("auth-akka-http"))
 
   lazy val root = (project in file("."))
     .settings(commonSettings: _*)
-    .settings(publish := {})
+    .settings(packagedArtifacts := Map.empty)
     .settings(name := "auth")
     .enablePlugins(GitVersioning)
     .aggregate(common, akkaHttp, spray)
