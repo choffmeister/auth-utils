@@ -5,6 +5,6 @@ machine:
 test:
   override:
     - sbt coverage test coverageAggregate
+    - sbt coveralls
   post:
     - cp auth-*/target/test-reports/* $CIRCLE_TEST_REPORTS
-    - cp -r target/scala-2.11/scoverage-report $CIRCLE_ARTIFACTS

@@ -1,8 +1,9 @@
 # auth-utils
 
-[![build](https://img.shields.io/circleci/project/choffmeister/auth-utils.svg)](https://circleci.com/gh/choffmeister/auth-utils)
-[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-common.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-common_2.11%22)
-[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-akka-http.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-akka-http_2.11%22)
+[![build](https://img.shields.io/circleci/project/choffmeister/auth-utils/develop.svg)](https://circleci.com/gh/choffmeister/auth-utils)
+[![coverage](https://img.shields.io/coveralls/choffmeister/auth-utils/develop.svg)](https://coveralls.io/github/choffmeister/auth-utils?branch=develop)
+[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-common_2.11.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-common_2.11%22)
+[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-akka-http_2.11.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-akka-http_2.11%22)
 [![license](http://img.shields.io/badge/license-MIT-lightgrey.svg)](http://opensource.org/licenses/MIT)
 
 ## Usage
