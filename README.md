@@ -1,8 +1,8 @@
 # auth-utils
 
 [![build](https://img.shields.io/circleci/project/choffmeister/auth-utils.svg)](https://circleci.com/gh/choffmeister/auth-utils)
-[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-common.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-common%22)
-[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-spray.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-spray%22)
+[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-common.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-common_2.11%22)
+[![maven Central](https://img.shields.io/maven-central/v/de.choffmeister/auth-akka-http.svg)](http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22de.choffmeister%22%20AND%20a%3A%22auth-akka-http_2.11%22)
 [![license](http://img.shields.io/badge/license-MIT-lightgrey.svg)](http://opensource.org/licenses/MIT)
 
 ## Usage
@@ -16,7 +16,7 @@ libraryDependencies += "de.choffmeister" %% "auth-common" % "0.1.0"
 libraryDependencies += "de.choffmeister" %% "auth-akka-http" % "0.1.0"
 ~~~
 
-Here is an example, that uses HTTP basic authentication as well as JWT authentication:
+Here is an example, that uses the hasher and HTTP basic authentication as well as JWT authentication:
 
 ~~~ scala
 // UsageExample.scala
@@ -27,26 +27,37 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
 import de.choffmeister.auth.akkahttp.Authenticator
-import de.choffmeister.auth.common.{JsonWebToken, OAuth2AccessTokenResponse, OAuth2AccessTokenResponseFormat}
+import de.choffmeister.auth.common._
 import spray.json.JsString
 
 import scala.concurrent._
 import scala.concurrent.duration._
 
-case class User(id: Int, userName: String)
+case class User(id: Int, userName: String, passwordHash: String)
 object UserDatabase {
-  private val users = User(1, "user1") :: User(2, "user2") :: Nil
-  private val passwords = Map(1 -> "pass1", 2 -> "pass2")
+  // This hasher per default hashes new passwords with PBKDF2-HMAC-SHA1, 10000
+  // rounds, 128 bit hash output and supports validating passwords that were
+  // stored with either PBKDF2 or Plain hasing
+  private val hasher = new PasswordHasher(
+    "pbkdf2", "hmac-sha1" :: "10000" :: "128" :: Nil,
+    List(PBKDF2, Plain))
+
+  private val users = List(
+    // user1 with pass1
+    User(1, "user1", "plain:cGFzczE="),
+    // user2 with pass2
+    User(2, "user2", "pbkdf2:hmac-sha1:10000:128:MfdJXQsZjB40B9yhoWw7hVkNkAK9qd4Dt5y1JTPaRDw=:gxnD5GLjZljqp9ybgpFlvQ=="))
 
   def findById(id: String)(implicit ec: ExecutionContext) =
     Future(users.find(_.id.toString == id))
   def findByUserName(userName: String)(implicit ec: ExecutionContext) =
     Future(users.find(_.userName == userName))
   def validatePassword(user: User, password: String)(implicit ec: ExecutionContext) =
-    Future(passwords(user.id) == password)
+    Future(hasher.validate(user.passwordHash, password))
 }
 
-class UsageExample(implicit val system: ActorSystem, val executor: ExecutionContext, val materializer: Materializer) {
+class UsageExample(implicit val system: ActorSystem, val exec: ExecutionContext,
+    val materializer: Materializer) {
   val bearerTokenSecret = "secret-no-one-knows".getBytes
   val bearerTokenLifetime = 5.minutes
 
@@ -60,19 +71,25 @@ class UsageExample(implicit val system: ActorSystem, val executor: ExecutionCont
   val route =
     pathPrefix("token" / "create") {
       get {
-        // here we can send valid username/password via HTTP basic authentication and get a JWT for it
-        authenticator.basic()(user => completeWithToken(user))
+        // Here we can send valid username/password HTTP basic authentication
+        // and get a JWT for it. If wrong credentials were given, then this
+        // route is not completed before 1 second has passed. This makes timing
+        // attacks harder, since an attacker cannot distinguish between wrong
+        // username and existing username, but wrong password.
+        authenticator.basic(Some(1000.millis))(user => completeWithToken(user))
       }
     } ~
     path("token" / "renew") {
       get {
-        // here we can send an expired JWT via HTTP bearer authentication and get a renewed JWT for it
+        // Here we can send an expired JWT via HTTP bearer authentication and
+        // get a renewed JWT for it.
         authenticator.bearerToken(acceptExpired = true)(user => completeWithToken(user))
       }
     } ~
     path("state") {
       get {
-        // here we get greeted, if we have either a valid username/password or JWT sent via HTTP basic resp. HTTP bearer
+        // Here we get greeted, if we have either a valid username/password or
+        // JWT sent via HTTP basic resp. HTTP bearer.
         authenticator()(user => complete(s"Welcome, ${user.userName}!"))
       }
     }
@@ -88,8 +105,9 @@ class UsageExample(implicit val system: ActorSystem, val executor: ExecutionCont
       subject = user.id.toString,
       claims = Map("name" -> JsString(user.userName))
     )
+    val tokenStr = JsonWebToken.write(token, secret)
 
-    val response = OAuth2AccessTokenResponse("bearer", JsonWebToken.write(token, secret), lifetime)
+    val response = OAuth2AccessTokenResponse("bearer", tokenStr, lifetime)
     complete(OAuth2AccessTokenResponseFormat.write(response).compactPrint)
   }
 }
