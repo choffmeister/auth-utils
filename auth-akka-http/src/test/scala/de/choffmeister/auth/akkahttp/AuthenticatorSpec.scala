@@ -179,16 +179,12 @@ class AuthenticatorSpec extends Specification with Specs2RouteTest {
       }
 
       Get("/combined") ~> addCredentials(BasicHttpCredentials("user1", "pass2")) ~> routes ~> check {
-        rejections === List(
-          AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("Bearer", "realm")),
-          AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("Basic", "realm")))
+        rejection === AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("Basic", "realm"))
       }
 
       Get("/combined") ~> addCredentials(OAuth2BearerToken(jwtInvalidSignature)) ~> routes ~> check {
-        rejections === List(
-          AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("Bearer", "realm",
-            Map("error" -> "invalid_token", "error_description" -> "The access token has been manipulated"))),
-          AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("Basic", "realm")))
+        rejection === AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("Bearer", "realm",
+            Map("error" -> "invalid_token", "error_description" -> "The access token has been manipulated")))
       }
     }
   }

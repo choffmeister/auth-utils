@@ -1,7 +1,7 @@
 package de.choffmeister.auth.akkahttp
 
 import akka.http.scaladsl.model.headers._
-import akka.http.scaladsl.server.Directive1
+import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.directives.RouteDirectives._
 import akka.http.scaladsl.server.directives._
 import akka.pattern.after
@@ -20,8 +20,21 @@ class Authenticator[U](
     findUserByUserName: String => Future[Option[U]],
     validateUserPassword: (U, String) => Future[Boolean])(implicit executor: ExecutionContext) extends SecurityDirectives {
   def apply(): Directive1[U] = {
-    bearerToken(acceptExpired = false).recover { rejs =>
-      basic().recover(rejs2 => reject(rejs ++ rejs2: _*))
+    bearerToken(acceptExpired = false).recover { rejs1 =>
+      basic().recover { rejs2 =>
+        val rejs = rejs1 ++ rejs2
+        val authRejs = rejs.filter(_.isInstanceOf[AuthenticationFailedRejection]).map(_.asInstanceOf[AuthenticationFailedRejection])
+        val authMissingRejs = authRejs.filter(_.cause == AuthenticationFailedRejection.CredentialsMissing)
+        val authRejectedRejs = authRejs.filter(_.cause == AuthenticationFailedRejection.CredentialsRejected)
+        val otherRejs = rejs.filterNot(_.isInstanceOf[AuthenticationFailedRejection])
+
+        println(s"authMissingRejs $authMissingRejs")
+        println(s"authRejectedRejs $authRejectedRejs")
+        println(s"otherRejs $otherRejs")
+
+        if (authRejectedRejs.isEmpty) reject(authMissingRejs ++ otherRejs: _*)
+        else reject(authRejectedRejs ++ otherRejs: _*)
+      }
     }
   }
 
@@ -36,9 +49,7 @@ class Authenticator[U](
             }
           case None => Future(None)
         }
-
-
-        val x = minDelay match {
+        val delayedAuth = minDelay match {
           case None => auth
           case Some(delay) =>
             val delayed = after[Option[U]](delay, SimpleScheduler.instance)(Future(None))
@@ -51,11 +62,10 @@ class Authenticator[U](
             promise.future
         }
 
-        x.map {
+        delayedAuth.map {
           case Some(user) => grant(user)
           case None => deny
         }
-
       case None => Future(deny)
     }
   }
