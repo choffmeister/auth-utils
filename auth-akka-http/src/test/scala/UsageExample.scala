@@ -15,7 +15,7 @@ case class User(id: Int, userName: String, passwordHash: String)
 object UserDatabase {
   // This hasher per default hashes new passwords with PBKDF2-HMAC-SHA1, 10000
   // rounds, 128 bit hash output and supports validating passwords that were
-  // stored with either PBKDF2 or Plain hasing
+  // stored with either PBKDF2 or Plain hashing
   private val hasher = new PasswordHasher(
     "pbkdf2", "hmac-sha1" :: "10000" :: "128" :: Nil,
     List(PBKDF2, Plain))
@@ -47,7 +47,7 @@ class UsageExample(implicit val system: ActorSystem, val exec: ExecutionContext,
     validateUserPassword = UserDatabase.validatePassword)
 
   val route =
-    pathPrefix("token" / "create") {
+    path("token" / "create") {
       get {
         // Here we can send valid username/password HTTP basic authentication
         // and get a JWT for it. If wrong credentials were given, then this
