@@ -4,12 +4,14 @@ import com.typesafe.sbt._
 import com.typesafe.sbt.SbtGit.GitKeys._
 
 object Build extends sbt.Build {
+  val akkaVersion = "2.4.2"
+
   lazy val coordinateSettings = Seq(
     organization := "de.choffmeister",
     version in ThisBuild := gitDescribedVersion.value.map(_.drop(1)).get)
 
   lazy val buildSettings = Seq(
-    scalaVersion := "2.11.5",
+    scalaVersion := "2.11.7",
     scalacOptions ++= Seq("-encoding", "utf8"))
 
   lazy val resolverSettings = Seq(
@@ -34,38 +36,28 @@ object Build extends sbt.Build {
   lazy val common = (project in file("auth-common"))
     .settings(commonSettings: _*)
     .settings(libraryDependencies ++= Seq(
-      "commons-codec" % "commons-codec" % "1.9",
-      "io.spray" %% "spray-json" % "1.3.1",
-      "org.specs2" %% "specs2-core" % "3.3.1" % "test"))
+      "commons-codec" % "commons-codec" % "1.10",
+      "io.spray" %% "spray-json" % "1.3.2",
+      "org.specs2" %% "specs2-core" % "3.7.1" % "test"))
     .settings(name := "auth-common")
 
 lazy val akkaHttp = (project in file("auth-akka-http"))
   .settings(commonSettings: _*)
   .settings(libraryDependencies ++= Seq(
-    "com.typesafe" % "config" % "1.2.0",
-    "com.typesafe.akka" %% "akka-actor" % "2.3.12",
-    "com.typesafe.akka" %% "akka-http-experimental" % "1.0",
-    "com.typesafe.akka" %% "akka-http-testkit-experimental" % "1.0" % "test",
-    "org.specs2" %% "specs2-core" % "3.3.1" % "test"))
+    "com.typesafe" % "config" % "1.3.0",
+    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+    "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
+    "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion % "test",
+    "org.specs2" %% "specs2-core" % "3.7.1" % "test"))
   .settings(name := "auth-akka-http")
   .dependsOn(common)
 
-  lazy val spray = (project in file("auth-spray"))
-    .settings(commonSettings: _*)
-    .settings(libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % "1.2.0",
-      "com.typesafe.akka" %% "akka-actor" % "2.3.12",
-      "io.spray" %% "spray-routing" % "1.3.1",
-      "org.specs2" %% "specs2-core" % "3.3.1" % "test"))
-    .settings(name := "auth-spray")
-    .dependsOn(common)
-
   lazy val root = (project in file("."))
     .settings(commonSettings: _*)
-    .settings(publish := {})
+    .settings(packagedArtifacts := Map.empty)
     .settings(name := "auth")
     .enablePlugins(GitVersioning)
-    .aggregate(common, akkaHttp, spray)
+    .aggregate(common, akkaHttp)
 
   lazy val mavenInfos = {
     <url>https://github.com/choffmeister/auth-utils</url>
