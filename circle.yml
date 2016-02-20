@@ -4,7 +4,10 @@ machine:
 
 test:
   override:
-    - sbt coverage test coverageAggregate
+    - sbt coverage test
+    - sbt coverageReport
+    - sbt coverageAggregate
+    - sbt stats
     - sbt coveralls
   post:
     - cp auth-*/target/test-reports/* $CIRCLE_TEST_REPORTS
