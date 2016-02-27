@@ -21,7 +21,7 @@ Here is an example, that uses the hasher and HTTP basic authentication as well a
 
 ~~~ scala
 // UsageExample.scala
-import java.util.Date
+import java.time.Instant
 
 import akka.actor._
 import akka.http.scaladsl.server.Directives._
@@ -38,7 +38,7 @@ case class User(id: Int, userName: String, passwordHash: String)
 object UserDatabase {
   // This hasher per default hashes new passwords with PBKDF2-HMAC-SHA1, 10000
   // rounds, 128 bit hash output and supports validating passwords that were
-  // stored with either PBKDF2 or Plain hasing
+  // stored with either PBKDF2 or Plain hashing
   private val hasher = new PasswordHasher(
     "pbkdf2", "hmac-sha1" :: "10000" :: "128" :: Nil,
     List(PBKDF2, Plain))
@@ -49,11 +49,11 @@ object UserDatabase {
     // user2 with pass2
     User(2, "user2", "pbkdf2:hmac-sha1:10000:128:MfdJXQsZjB40B9yhoWw7hVkNkAK9qd4Dt5y1JTPaRDw=:gxnD5GLjZljqp9ybgpFlvQ=="))
 
-  def findById(id: String)(implicit ec: ExecutionContext) =
+  def findById(id: String)(implicit ec: ExecutionContext): Future[Option[User]] =
     Future(users.find(_.id.toString == id))
-  def findByUserName(userName: String)(implicit ec: ExecutionContext) =
+  def findByUsername(userName: String)(implicit ec: ExecutionContext): Future[Option[User]] =
     Future(users.find(_.userName == userName))
-  def validatePassword(user: User, password: String)(implicit ec: ExecutionContext) =
+  def validatePassword(user: User, password: String)(implicit ec: ExecutionContext): Future[Boolean] =
     Future(hasher.validate(user.passwordHash, password))
 }
 
@@ -65,12 +65,17 @@ class UsageExample(implicit val system: ActorSystem, val exec: ExecutionContext,
   val authenticator = new Authenticator[User](
     realm = "Example realm",
     bearerTokenSecret = bearerTokenSecret,
-    findUserById = UserDatabase.findById,
-    findUserByUserName = UserDatabase.findByUserName,
-    validateUserPassword = UserDatabase.validatePassword)
+    fromUsernamePassword = (username, password) => UserDatabase.findByUsername(username).flatMap {
+      case Some(user) => UserDatabase.validatePassword(user, password).map {
+        case true => Some(user)
+        case false => None
+      }
+      case None => Future(None)
+    },
+    fromBearerToken = token => UserDatabase.findById(token.claimAsString("sub").right.get))
 
   val route =
-    pathPrefix("token" / "create") {
+    path("token" / "create") {
       get {
         // Here we can send valid username/password HTTP basic authentication
         // and get a JWT for it. If wrong credentials were given, then this
@@ -98,13 +103,12 @@ class UsageExample(implicit val system: ActorSystem, val exec: ExecutionContext,
   private def completeWithToken(user: User): Route = {
     val secret = bearerTokenSecret
     val lifetime = bearerTokenLifetime.toSeconds
-    val now = System.currentTimeMillis / 1000L * 1000L
+    val now = System.currentTimeMillis / 1000L
 
     val token = JsonWebToken(
-      createdAt = new Date(now),
-      expiresAt = new Date(now + lifetime * 1000L),
-      subject = user.id.toString,
-      claims = Map("name" -> JsString(user.userName))
+      claims = Map("sub" -> JsString(user.id.toString), "name" -> JsString(user.userName)),
+      createdAt = Instant.ofEpochSecond(now),
+      expiresAt = Instant.ofEpochSecond(now + lifetime)
     )
     val tokenStr = JsonWebToken.write(token, secret)
 
