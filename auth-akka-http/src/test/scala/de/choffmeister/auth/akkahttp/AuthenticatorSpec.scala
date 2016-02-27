@@ -5,11 +5,12 @@ import akka.http.scaladsl.server.AuthenticationFailedRejection
 import akka.http.scaladsl.server.AuthenticationFailedRejection.{CredentialsMissing, CredentialsRejected}
 import akka.http.scaladsl.server.Directives._
 import org.specs2.mutable._
+import spray.json.JsString
 
 import scala.concurrent._
 import scala.concurrent.duration._
 
-case class User(id: Int, userName: String, password: String)
+case class User(id: Int, username: String, password: String)
 
 class AuthenticatorSpec extends Specification with Specs2RouteTest {
   val users = User(1, "user1", "pass1") :: User(2, "user2", "pass2") :: Nil
@@ -29,9 +30,20 @@ class AuthenticatorSpec extends Specification with Specs2RouteTest {
   val authenticator = new Authenticator[User](
     realm = "realm",
     bearerTokenSecret = "secret".getBytes(),
-    findUserById = id => Future(users.find(_.id.toString == id)),
-    findUserByUserName = userName => Future(users.find(_.userName == userName)),
-    validateUserPassword = (user, password) => Future(user.password == password)
+    fromUsernamePassword = (username, password) => Future {
+      users.find(_.username == username) match {
+        case Some(user) =>
+          user.password == password match {
+            case true => Some(user)
+            case false => None
+          }
+        case None =>
+          None
+      }
+    },
+    fromBearerToken = token => Future {
+      users.find(u => token.claimAsString("sub") == Right(u.id.toString))
+    }
   )
 
   val routes =
@@ -144,7 +156,7 @@ class AuthenticatorSpec extends Specification with Specs2RouteTest {
     "bearer - reject token with formal errors" in new TestActorSystem {
       Get("/bearer") ~> addCredentials(OAuth2BearerToken(jwtIncomplete)) ~> routes ~> check {
         rejection === AuthenticationFailedRejection(CredentialsRejected, HttpChallenge("Bearer", "realm",
-          Map("error" -> "invalid_token", "error_description" -> "The token must at least contain the iat, exp and sub claim")))
+          Map("error" -> "invalid_token", "error_description" -> "The token must at least contain the iat and exp claim")))
       }
 
       Get("/bearer") ~> addCredentials(OAuth2BearerToken(jwtInvalidSignature)) ~> routes ~> check {

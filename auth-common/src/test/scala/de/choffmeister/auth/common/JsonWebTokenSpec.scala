@@ -12,7 +12,7 @@ class JsonWebTokenSpec extends Specification {
     "read and write tokens" in {
       val sec = "secret".getBytes("ASCII")
 
-      val jwt1 = JsonWebToken(subject = "jw", expiresAt = time(+60), claims = Map("foo" -> JsString("bar")))
+      val jwt1 = JsonWebToken(expiresAt = time(+60), claims = Map("sub" -> JsString("jw"), "foo" -> JsString("bar")))
       val s = JsonWebToken.write(jwt1, sec)
       val jwt2 = JsonWebToken.read(s, sec)
       jwt2 must beRight(jwt1)
@@ -22,7 +22,7 @@ class JsonWebTokenSpec extends Specification {
       val sec1 = "secret1".getBytes("ASCII")
       val sec2 = "secret2".getBytes("ASCII")
 
-      val jwt1 = JsonWebToken(subject = "jw", claims = Map("foo" -> JsString("bar")))
+      val jwt1 = JsonWebToken(claims = Map("sub" -> JsString("jw"), "foo" -> JsString("bar")))
       val s = JsonWebToken.write(jwt1, sec1)
       val jwt2 = JsonWebToken.read(s, sec2)
       jwt2 must beLeft(JsonWebToken.InvalidSignature)
@@ -31,7 +31,7 @@ class JsonWebTokenSpec extends Specification {
     "recognize expiration" in {
       val sec = "secret".getBytes("ASCII")
 
-      val jwt1 = JsonWebToken(subject = "jw", expiresAt = time(-60), claims = Map("foo" -> JsString("bar")))
+      val jwt1 = JsonWebToken(expiresAt = time(-60), claims = Map("sub" -> JsString("jw"), "foo" -> JsString("bar")))
       val s = JsonWebToken.write(jwt1, sec)
       val jwt2 = JsonWebToken.read(s, sec)
       jwt2 must beLeft(JsonWebToken.Expired(jwt1))

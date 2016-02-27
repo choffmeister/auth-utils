@@ -11,10 +11,14 @@ import spray.json._
 class JsonWebTokenException(val message: String) extends Exception(message)
 
 case class JsonWebToken(
-    subject: String,
     claims: Map[String, JsValue] = Map.empty,
     createdAt: Instant = Instant.ofEpochSecond(System.currentTimeMillis / 1000L),
     expiresAt: Instant = Instant.ofEpochSecond(System.currentTimeMillis / 1000L)) {
+  def claimAsString(claim: String) = claims.find(_._1 == claim) match {
+    case Some((_, value: JsString)) => Right(value.value)
+    case Some((_, _)) => Left(s"Claim $claim is not of type String")
+    case _ => Left(s"Claim $claim is missing")
+  }
   def isExpired = expiresAt.toEpochMilli < System.currentTimeMillis
   def nonExpired = !isExpired
 }
@@ -29,14 +33,14 @@ object JsonWebToken {
               sign(algorithm, (headerStr + "." + tokenStr).getBytes("ASCII"), secret) match {
                 case Some(signature) =>
                   if (SequenceUtils.compareConstantTime(base64ToBytes(signatureStr), signature)) {
-                    val knownClaimNames = List("exp", "iat", "sub")
+                    val knownClaimNames = List("exp", "iat")
                     val tokenRaw = JsonParser(base64ToString(tokenStr)).asJsObject
                     tokenRaw.fields.filter(f => knownClaimNames.contains(f._1)).toSeq.sortBy(_._1).map(_._2) match {
-                      case Seq(JsNumber(exp), JsNumber(iat), JsString(sub)) =>
+                      case Seq(JsNumber(exp), JsNumber(iat)) =>
                         val token = JsonWebToken(
                           createdAt = Instant.ofEpochSecond(iat.toLong),
-                          expiresAt = Instant.ofEpochSecond(exp.toLong),
-                          subject = sub).copy(claims = tokenRaw.fields.filter(f => !knownClaimNames.contains(f._1)))
+                          expiresAt = Instant.ofEpochSecond(exp.toLong)
+                        ).copy(claims = tokenRaw.fields.filter(f => !knownClaimNames.contains(f._1)))
                         if (token.nonExpired) Right(token)
                         else Left(Expired(token))
                       case _ => Left(Incomplete)
@@ -58,8 +62,8 @@ object JsonWebToken {
     val h = JsObject("typ" -> JsString("JWT"), "alg" -> JsString("HS256"))
     val t = JsObject(Map(
       "iat" -> JsNumber(token.createdAt.getEpochSecond),
-      "exp" -> JsNumber(token.expiresAt.getEpochSecond),
-      "sub" -> JsString(token.subject)) ++ token.claims)
+      "exp" -> JsNumber(token.expiresAt.getEpochSecond)
+    ) ++ token.claims)
 
     val part12 = stringToBase64(h.toString) + "." + stringToBase64(t.toString)
     val part3 = bytesToBase64(sign("HS256", part12.getBytes("ASCII"), secret).get)
