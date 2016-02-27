@@ -1,12 +1,12 @@
 package de.choffmeister.auth.common
 
-import java.util.Date
+import java.time.Instant
 
 import org.specs2.mutable._
 import spray.json._
 
 class JsonWebTokenSpec extends Specification {
-  def time(delta: Long) = new Date(System.currentTimeMillis / 1000L * 1000L + delta * 1000L)
+  def time(delta: Long) = Instant.ofEpochSecond(System.currentTimeMillis / 1000L + delta)
 
   "JsonWebToken" should {
     "read and write tokens" in {

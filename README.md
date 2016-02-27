@@ -21,7 +21,7 @@ Here is an example, that uses the hasher and HTTP basic authentication as well a
 
 ~~~ scala
 // UsageExample.scala
-import java.util.Date
+import java.time.Instant
 
 import akka.actor._
 import akka.http.scaladsl.server.Directives._

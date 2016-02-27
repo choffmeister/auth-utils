@@ -1,4 +1,4 @@
-import java.util.Date
+import java.time.Instant
 
 import akka.actor._
 import akka.http.scaladsl.server.Directives._
@@ -75,11 +75,11 @@ class UsageExample(implicit val system: ActorSystem, val exec: ExecutionContext,
   private def completeWithToken(user: User): Route = {
     val secret = bearerTokenSecret
     val lifetime = bearerTokenLifetime.toSeconds
-    val now = System.currentTimeMillis / 1000L * 1000L
+    val now = System.currentTimeMillis / 1000L
 
     val token = JsonWebToken(
-      createdAt = new Date(now),
-      expiresAt = new Date(now + lifetime * 1000L),
+      createdAt = Instant.ofEpochSecond(now),
+      expiresAt = Instant.ofEpochSecond(now + lifetime),
       subject = user.id.toString,
       claims = Map("name" -> JsString(user.userName))
     )

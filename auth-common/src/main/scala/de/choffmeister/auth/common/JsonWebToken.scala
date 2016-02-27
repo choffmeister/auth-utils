@@ -1,6 +1,6 @@
 package de.choffmeister.auth.common
 
-import java.util.Date
+import java.time.Instant
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -13,9 +13,9 @@ class JsonWebTokenException(val message: String) extends Exception(message)
 case class JsonWebToken(
     subject: String,
     claims: Map[String, JsValue] = Map.empty,
-    createdAt: Date = new Date(System.currentTimeMillis / 1000L * 1000L),
-    expiresAt: Date = new Date(System.currentTimeMillis / 1000L * 1000L)) {
-  def isExpired = expiresAt.getTime < System.currentTimeMillis
+    createdAt: Instant = Instant.ofEpochSecond(System.currentTimeMillis / 1000L),
+    expiresAt: Instant = Instant.ofEpochSecond(System.currentTimeMillis / 1000L)) {
+  def isExpired = expiresAt.toEpochMilli < System.currentTimeMillis
   def nonExpired = !isExpired
 }
 
@@ -34,8 +34,8 @@ object JsonWebToken {
                     tokenRaw.fields.filter(f => knownClaimNames.contains(f._1)).toSeq.sortBy(_._1).map(_._2) match {
                       case Seq(JsNumber(exp), JsNumber(iat), JsString(sub)) =>
                         val token = JsonWebToken(
-                          createdAt = new Date(iat.toLong * 1000L),
-                          expiresAt = new Date(exp.toLong * 1000L),
+                          createdAt = Instant.ofEpochSecond(iat.toLong),
+                          expiresAt = Instant.ofEpochSecond(exp.toLong),
                           subject = sub).copy(claims = tokenRaw.fields.filter(f => !knownClaimNames.contains(f._1)))
                         if (token.nonExpired) Right(token)
                         else Left(Expired(token))
@@ -57,8 +57,8 @@ object JsonWebToken {
   def write(token: JsonWebToken, secret: Array[Byte]): String = {
     val h = JsObject("typ" -> JsString("JWT"), "alg" -> JsString("HS256"))
     val t = JsObject(Map(
-      "iat" -> JsNumber(token.createdAt.getTime / 1000L),
-      "exp" -> JsNumber(token.expiresAt.getTime / 1000L),
+      "iat" -> JsNumber(token.createdAt.getEpochSecond),
+      "exp" -> JsNumber(token.expiresAt.getEpochSecond),
       "sub" -> JsString(token.subject)) ++ token.claims)
 
     val part12 = stringToBase64(h.toString) + "." + stringToBase64(t.toString)
