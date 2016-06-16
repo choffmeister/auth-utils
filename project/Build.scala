@@ -1,3 +1,4 @@
+import bintray.BintrayKeys._
 import sbt._
 import sbt.Keys._
 import com.typesafe.sbt._
@@ -19,16 +20,9 @@ object Build extends sbt.Build {
       "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"))
 
   lazy val publishSettings = Seq(
-    publishMavenStyle := true,
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else
-        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-    },
-    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
-    pomExtra := mavenInfos)
+    licenses += ("MIT", url("http://opensource.org/licenses/MIT")),
+    bintrayReleaseOnPublish in ThisBuild := false
+  )
 
   lazy val commonSettings = Defaults.coreDefaultSettings ++ coordinateSettings ++ buildSettings ++
     resolverSettings ++ publishSettings
@@ -41,16 +35,16 @@ object Build extends sbt.Build {
       "org.specs2" %% "specs2-core" % "3.7.1" % "test"))
     .settings(name := "auth-common")
 
-lazy val akkaHttp = (project in file("auth-akka-http"))
-  .settings(commonSettings: _*)
-  .settings(libraryDependencies ++= Seq(
-    "com.typesafe" % "config" % "1.3.0",
-    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
-    "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion % "test",
-    "org.specs2" %% "specs2-core" % "3.7.1" % "test"))
-  .settings(name := "auth-akka-http")
-  .dependsOn(common)
+  lazy val akkaHttp = (project in file("auth-akka-http"))
+    .settings(commonSettings: _*)
+    .settings(libraryDependencies ++= Seq(
+      "com.typesafe" % "config" % "1.3.0",
+      "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+      "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
+      "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion % "test",
+      "org.specs2" %% "specs2-core" % "3.7.1" % "test"))
+    .settings(name := "auth-akka-http")
+    .dependsOn(common)
 
   lazy val root = (project in file("."))
     .settings(commonSettings: _*)
@@ -58,25 +52,4 @@ lazy val akkaHttp = (project in file("auth-akka-http"))
     .settings(name := "auth")
     .enablePlugins(GitVersioning)
     .aggregate(common, akkaHttp)
-
-  lazy val mavenInfos = {
-    <url>https://github.com/choffmeister/auth-utils</url>
-    <licenses>
-      <license>
-        <name>MIT</name>
-        <url>http://opensource.org/licenses/MIT</url>
-      </license>
-    </licenses>
-    <scm>
-      <url>github.com/choffmeister/auth-utils.git</url>
-      <connection>scm:git:github.com/choffmeister/auth-utils.git</connection>
-      <developerConnection>scm:git:git@github.com:choffmeister/auth-utils.git</developerConnection>
-    </scm>
-    <developers>
-      <developer>
-        <id>choffmeister</id>
-        <name>Christian Hoffmeister</name>
-        <url>http://choffmeister.de/</url>
-      </developer>
-    </developers> }
 }

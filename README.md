@@ -12,9 +12,10 @@ Add the following lines to you `build.sbt` file:
 
 ~~~ scala
 // build.sbt
-libraryDependencies += "de.choffmeister" %% "auth-common" % "0.1.0"
+resolvers += Resolver.bintrayRepo("choffmeister", "maven")
 
-libraryDependencies += "de.choffmeister" %% "auth-akka-http" % "0.1.0"
+libraryDependencies += "de.choffmeister" %% "auth-common" % "0.3.0"
+libraryDependencies += "de.choffmeister" %% "auth-akka-http" % "0.3.0"
 ~~~
 
 Here is an example, that uses the hasher and HTTP basic authentication as well as JWT authentication:
