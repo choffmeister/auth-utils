@@ -12,7 +12,8 @@ object Build extends sbt.Build {
     version in ThisBuild := gitDescribedVersion.value.map(_.drop(1)).get)
 
   lazy val buildSettings = Seq(
-    scalaVersion := "2.11.7",
+    scalaVersion := "2.11.8",
+    crossScalaVersions := Seq("2.12.1", "2.11.8"),
     scalacOptions ++= Seq("-encoding", "utf8"))
 
   lazy val resolverSettings = Seq(
