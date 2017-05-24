@@ -12,8 +12,8 @@ object Build extends sbt.Build {
     version in ThisBuild := gitDescribedVersion.value.map(_.drop(1)).get)
 
   lazy val buildSettings = Seq(
-    scalaVersion := "2.11.8",
-    crossScalaVersions := Seq("2.12.1", "2.11.8"),
+    scalaVersion := "2.11.11",
+    crossScalaVersions := Seq("2.12.2", "2.11.11"),
     scalacOptions ++= Seq("-encoding", "utf8"))
 
   lazy val resolverSettings = Seq(
@@ -32,18 +32,18 @@ object Build extends sbt.Build {
     .settings(commonSettings: _*)
     .settings(libraryDependencies ++= Seq(
       "commons-codec" % "commons-codec" % "1.10",
-      "io.spray" %% "spray-json" % "1.3.2",
-      "org.specs2" %% "specs2-core" % "3.7.1" % "test"))
+      "io.spray" %% "spray-json" % "1.3.3",
+      "org.specs2" %% "specs2-core" % "3.8.9" % "test"))
     .settings(name := "auth-common")
 
   lazy val akkaHttp = (project in file("auth-akka-http"))
     .settings(commonSettings: _*)
     .settings(libraryDependencies ++= Seq(
-      "com.typesafe" % "config" % "1.3.0",
+      "com.typesafe" % "config" % "1.3.1",
       "com.typesafe.akka" %% "akka-actor" % akkaVersion,
       "com.typesafe.akka" %% "akka-http-experimental" % akkaVersion,
       "com.typesafe.akka" %% "akka-http-testkit" % akkaVersion % "test",
-      "org.specs2" %% "specs2-core" % "3.7.1" % "test"))
+      "org.specs2" %% "specs2-core" % "3.8.9" % "test"))
     .settings(name := "auth-akka-http")
     .dependsOn(common)
 
