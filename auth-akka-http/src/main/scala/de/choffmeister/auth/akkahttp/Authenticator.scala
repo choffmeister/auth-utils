@@ -13,6 +13,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 import scala.util.Success
 
+@deprecated("Please switch to https://github.com/choffmeister/microservice-utils", since = "0.3.2")
 class Authenticator[Auth](
     realm: String,
     bearerTokenSecret: Array[Byte],
