@@ -12,7 +12,7 @@ Add the following lines to you `build.sbt` file:
 // build.sbt
 resolvers += Resolver.bintrayRepo("choffmeister", "maven")
 
-libraryDependencies += "de.choffmeister" %% "auth-common" % "0.3.2"
+libraryDependencies += "de.choffmeister" %% "auth-common" % "0.4.0"
 ~~~
 
 ## License
