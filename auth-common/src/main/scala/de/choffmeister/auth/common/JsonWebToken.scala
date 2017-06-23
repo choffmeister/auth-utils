@@ -8,8 +8,10 @@ import de.choffmeister.auth.common.util.Base64UrlStringConverter._
 import de.choffmeister.auth.common.util._
 import spray.json._
 
+@deprecated("Please switch to https://github.com/choffmeister/microservice-utils", since = "0.3.2")
 class JsonWebTokenException(val message: String) extends Exception(message)
 
+@deprecated("Please switch to https://github.com/choffmeister/microservice-utils", since = "0.3.2")
 case class JsonWebToken(
     claims: Map[String, JsValue] = Map.empty,
     createdAt: Instant = Instant.ofEpochSecond(System.currentTimeMillis / 1000L),
@@ -23,6 +25,7 @@ case class JsonWebToken(
   def nonExpired = !isExpired
 }
 
+@deprecated("Please switch to https://github.com/choffmeister/microservice-utils", since = "0.3.2")
 object JsonWebToken {
   def read(str: String, secret: Array[Byte]): Either[Error, JsonWebToken] = {
     try {
