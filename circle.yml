@@ -1,12 +1,29 @@
-machine:
-  java:
-    version: oraclejdk8
+version: 2
+executorType: docker
+containerInfo:
+  - image: choffmeister/airfocus-ci@sha256:7a1d1d0e95321078a6a2d569f996b99f0a6e43e7e9a8aa31be128a70219d8a3d
 
-test:
-  override:
-    - sbt coverage test:test
-  post:
-    - sbt coverageReport
-    - sbt coverageAggregate
-    - sbt coveralls
-    - cp auth-*/target/test-reports/* $CIRCLE_TEST_REPORTS
+stages:
+  build:
+    workDir: ~/auth-utils
+    steps:
+      - type: checkout
+      - type: cache-restore
+        key: auth-utils-sbt-ivy2-{{ checksum "project/build.properties"}}-{{ checksum "build.sbt" }}
+      - type: shell
+        name: Compile sources
+        command: sbt test:compile
+      - type: cache-save
+        key: auth-utils-sbt-ivy2-{{ checksum "project/build.properties"}}-{{ checksum "build.sbt" }}
+        paths:
+          - ~/.sbt
+          - ~/.ivy2
+      - type: shell
+        name: Run tests
+        command: sbt coverage test:test
+      - type: shell
+        name: Generate test report
+        command: sbt coverageReport coverageAggregate
+      - type: shell
+        name: Upload test report to coveralls
+        command: sbt coveralls
