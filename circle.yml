@@ -1,7 +1,7 @@
 version: 2
 executorType: docker
 containerInfo:
-  - image: choffmeister/airfocus-ci@sha256:7a1d1d0e95321078a6a2d569f996b99f0a6e43e7e9a8aa31be128a70219d8a3d
+  - image: choffmeister/scala-ci:latest
 
 stages:
   build:
